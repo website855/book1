@@ -1,0 +1,195 @@
+<!-- booking.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GameNgo Turf Booking</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
+</head>
+<body>
+
+<header class="navbar navbar-expand-lg bg-white shadow-sm p-3">
+  <div class="container">
+    <a href="#" class="navbar-brand d-flex align-items-center">
+      <img src="logo.jpg" alt="GameNgo Logo" class="me-2" height="40" />
+      <span class="fw-bold fs-4">GameNgo <span class="text-success">Booking</span></span>
+    </a>
+  </div>
+</header>
+
+<div class="container mt-4">
+  <h4 class="fw-bold">Book Your Turf</h4>
+  <form id="bookingForm" action="submit_booking.php" method="POST">
+    <div class="mb-3">
+      <label class="form-label">Turf Name</label>
+      <input type="text" class="form-control" id="turfName" name="turfName" readonly />
+    </div>
+
+    <div class="mb-3" id="deviceSection" style="display: none;">
+      <label class="form-label">Select Device</label>
+      <select class="form-select" id="deviceDropdown" name="device">
+        <!-- Devices will be filled dynamically -->
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Username</label>
+      <input type="text" class="form-control" name="username" required />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" name="email" required />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Mobile Number</label>
+      <input type="tel" class="form-control" name="mobile" required />
+    </div>
+
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-control" name="date" id="date" required />
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Time(24 Format)</label>
+        <input type="time" class="form-control" name="time" id="time" required />
+      </div>
+    </div>
+
+    <div class="col-md-3 col-6 mb-3">
+      <label class="form-label">Number of Hours</label>
+      <input type="number" class="form-control" name="hours" id="hours" min="0.5" step="0.5" required />
+    </div>
+
+    <div class="mb-3">
+      <button type="button" onclick="calculateAmount()" class="btn btn-primary w-100">Calculate Total Amount</button>
+    </div>
+
+    <div class="mb-4">
+      <div class="p-3 border border-2 rounded shadow-sm bg-light">
+        <h5 class="fw-bold mb-2">Total Amount:</h5>
+        <h2 id="totalAmount" class="fw-bold text-danger fs-3">0 LKR</h2>
+      </div>
+    </div>
+
+    <input type="hidden" name="totalAmount" id="hiddenTotalAmount" /> <!-- Hidden field to pass total amount -->
+
+    <button type="submit" class="btn btn-success w-100">Confirm Booking</button>
+  </form>
+</div>
+
+<footer class="footer bg-dark text-white text-center p-3 mt-4">
+  <p>© 2025 GameNgo. All Rights Reserved.</p>
+</footer>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const turf = params.get("turf") || "Unknown Turf";
+  document.getElementById("turfName").value = turf;
+
+  const deviceSection = document.getElementById("deviceSection");
+  const deviceDropdown = document.getElementById("deviceDropdown");
+
+  const gamingCenters = {
+    "De Hode Gaming": ["Two Controls", "Three Controls", "Four Controls", "Pool Table"],
+    "RS GAMING LOUNGE": ["PS4", "PS5", "Carrom", "Pool Table"],
+    "Frozen Gaming Center": ["1 Control", "2 Controls", "3 Controls", "4 Controls"],
+    "Gana Gaming Hub": ["1 Player", "2 Players", "3 Players", "4 Players"],
+    "Havelock gaming": ["PS5", "PC"],
+    "RIP GAMING SALOON": ["PS4", "Xbox Series", "PS5"]
+  };
+
+  if (gamingCenters[turf]) {
+    deviceSection.style.display = "block";
+    deviceDropdown.innerHTML = gamingCenters[turf].map(device => `<option value="${device}">${device}</option>`).join('');
+  }
+
+  function calculateAmount() {
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
+    const hours = parseFloat(document.getElementById("hours").value);
+    const selectedDevice = deviceDropdown.value || "";
+
+    let total = 0;
+
+    if (turf === "Grand City Futsal") {
+      const isWeekend = ["Saturday", "Sunday"].includes(new Date(date).toLocaleString('en-US', { weekday: 'long' }));
+      const timeHour = parseInt(time.split(":")[0]);
+      if (isWeekend) {
+        total = (timeHour < 17 ? 3000 : 3500) * hours;
+      } else {
+        total = (timeHour < 17 ? 2500 : 3500) * hours;
+      }
+    }
+    if (turf === "Kokon Sports Club(YMCA)") {
+      const timeHour = parseInt(time.split(":")[0]);
+      total = (timeHour < 17 ? 3500 : 4500) * hours;
+    }
+    if (turf === "Gameon Sports Arena") {
+      const timeHour = parseInt(time.split(":")[0]);
+      total = 2500 * hours;
+    }
+    if (turf === "Delkanda Court") {
+      const timeHour = parseInt(time.split(":")[0]);
+      total = 3500 * hours;
+    }
+    if (turf === "Nugegoda Court") {
+      const timeHour = parseInt(time.split(":")[0]);
+      total = 4000 * hours;
+    }
+    else if (turf === "RS GAMING LOUNGE") {
+      if (selectedDevice === "Carrom") {
+        total = hours === 0.5 ? 250 : 400 * hours;
+      } else if (selectedDevice === "Pool Table") {
+        total = hours === 0.5 ? 400 : 700 * hours;
+      } else if (selectedDevice === "PS4") {
+        total = hours === 0.5 ? 300 : 600 * hours;
+      } else if (selectedDevice === "PS5") {
+        total = hours === 0.5 ? 400 : 800 * hours;
+      }
+    }
+    else if (turf === "De Hoge Gaming") {
+      if (selectedDevice === "Pool Table") {
+        total = hours === 0.5 ? 350 : 700 * hours;
+      } else if (selectedDevice === "Two Controls") {
+        total = 600 * hours;
+      } else if (selectedDevice === "Three Controls") {
+        total = 800 * hours;
+      } else if (selectedDevice === "Four Controls") {
+        total = 1000 * hours;
+      }
+    }
+    else if (turf === "Frozen Gaming Center") {
+      const controlPrices = {
+        "1 Control": 450,
+        "2 Controls": 600,
+        "3 Controls": 750,
+        "4 Controls": 900
+      };
+      total = (controlPrices[selectedDevice] || 0) * hours;
+    }
+    else if (turf === "Gana Gaming Hub") {
+      const playerPrices = {
+        "1 Player": 400,
+        "2 Players": 600,
+        "3 Players": 800,
+        "4 Players": 1000
+      };
+      total = (playerPrices[selectedDevice] || 0) * hours;
+    }
+    else if (turf === "Havelock Gaming") {
+      total = selectedDevice === "PS5" ? 1000 * hours : 300 * hours;
+    }
+    else if (turf === "RIP Gaming Saloon") {
+      total = 1000 * hours;
+    }
+
+    // Update the total amount in the hidden input field
+    document.getElementById("totalAmount").textContent = total + " LKR";
+    document.getElementById("hiddenTotalAmount").value = total; // Store total in the hidden field
+  }
+</script>
+
+</body>
+</html>

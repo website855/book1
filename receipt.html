@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GameNgo Booking Receipt</title>
+  
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"/>
+  
+  <!-- jsPDF Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <!-- QRious Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .receipt-container {
+      max-width: 500px;
+      margin: 50px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .logo {
+      width: 80px;
+      margin-bottom: 10px;
+    }
+    .receipt-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #198754;
+    }
+    .details {
+      text-align: left;
+      font-size: 16px;
+    }
+    .details p {
+      margin: 5px 0;
+    }
+    .payment-methods {
+      margin-top: 20px;
+    }
+    .payment-form input, .payment-form select, .payment-form button {
+      margin-bottom: 10px;
+    }
+    .d-none {
+      display: none;
+    }
+    .alert {
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hidden Canvas for QR Generation -->
+<canvas id="qrCanvas" style="display: none;"></canvas>
+
+<div class="receipt-container">
+  <img src="logo.jpg" alt="GameNgo Logo" class="logo"/>
+  <h4 class="receipt-title">Booking Confirmation</h4>
+  <div id="countdown" class="mb-3" style="font-size: 18px; font-weight: bold; color: red;"></div>
+
+  <div class="details">
+    <p><strong>Turf:</strong> <span id="turfName"></span></p>
+    <p><strong>Username:</strong> <span id="username"></span></p>
+    <p><strong>Mobile:</strong> <span id="mobile"></span></p>
+    <p><strong>Date:</strong> <span id="date"></span></p>
+    <p><strong>Time:</strong> <span id="time"></span> <span id="ampm"></span></p>
+    <p><strong>Duration:</strong> <span id="hours"></span> hour(s)</p>
+  </div>
+
+  <div class="payment-methods">
+    <h5>Select Payment Method</h5>
+    <select id="paymentMethod" class="form-select">
+      <option value="">Choose a Payment Method</option>
+      <option value="card">Credit/Debit Card</option>
+      <option value="mcash">mCash/eZ Cash</option>
+      <option value="bank">Bank Transfer</option>
+    </select>
+
+    <div id="paymentSection" class="d-none">
+
+      <!-- Card Payment -->
+      <div id="cardPayment" class="d-none payment-form">
+        <h6>Card Payment</h6>
+        <form id="cardForm">
+          <input type="text" class="form-control" placeholder="Card Number" required><br>
+          <input type="text" class="form-control" placeholder="Card Holder Name" required><br>
+          <input type="text" class="form-control" placeholder="Expiry Date (MM/YY)" required><br>
+          <input type="text" class="form-control" placeholder="CSV" required><br>
+          <label for="cardImage">Upload Payment Screenshot</label>
+          <input type="file" id="cardImage" class="form-control" accept="image/*" required><br>
+          <button type="submit" class="btn btn-success">Submit Card Payment</button>
+        </form>
+      </div>
+
+      <!-- mCash Payment -->
+      <div id="mcashPayment" class="d-none payment-form">
+        <h6>mCash/eZ Cash Payment</h6>
+        <form id="mcashForm">
+          <input type="text" class="form-control" placeholder="mCash Number" required><br>
+          <label for="mcashImage">Upload Payment Screenshot</label>
+          <input type="file" id="mcashImage" class="form-control" accept="image/*" required><br>
+          <button type="submit" class="btn btn-success">Submit mCash Payment</button>
+        </form>
+      </div>
+
+      <!-- Bank Transfer -->
+      <div id="bankPayment" class="d-none payment-form">
+        <h6>Bank Transfer</h6>
+        <form id="bankForm">
+          <input type="text" class="form-control" placeholder="Bank Account Number" required><br>
+          <label for="bankImage">Upload Payment Screenshot</label>
+          <input type="file" id="bankImage" class="form-control" accept="image/*" required><br>
+          <button type="submit" class="btn btn-success">Submit Bank Transfer</button>
+        </form>
+      </div>
+
+    </div>
+
+    <button id="downloadBtn" class="btn btn-primary mt-4" disabled>Download Receipt (PDF)</button>
+    <button id="whatsappBtn" class="btn btn-info mt-2" disabled>Send Confirmation to WhatsApp</button>
+
+  </div>
+
+  <!-- Success Message -->
+  <div id="successMessage" class="alert alert-success mt-3 d-none">
+    🎉 Successfully Booked! Thank you for using GameNgo.
+  </div>
+  
+</div>
+
+<script>
+  // Get URL Parameters
+  function getURLParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return {
+      turfName: urlParams.get('turfName'),
+      username: urlParams.get('username'),
+      mobile: urlParams.get('mobile'),
+      date: urlParams.get('date'),
+      time: urlParams.get('time'),
+      ampm: urlParams.get('ampm'),
+      hours: urlParams.get('hours')
+    };
+  }
+
+  const bookingData = getURLParams();
+
+  document.getElementById("turfName").textContent = bookingData.turfName;
+  document.getElementById("username").textContent = bookingData.username;
+  document.getElementById("mobile").textContent = bookingData.mobile;
+  document.getElementById("date").textContent = bookingData.date;
+  document.getElementById("time").textContent = bookingData.time;
+  document.getElementById("ampm").textContent = bookingData.ampm;
+  document.getElementById("hours").textContent = bookingData.hours;
+
+  const turfOwners = {
+    "Grand City Futsal": "94714878878",
+    "Kokon Sports Club(YMCA)": "94729773896"
+  };
+
+  // Payment method change event
+  document.getElementById("paymentMethod").addEventListener("change", function () {
+    document.getElementById("paymentSection").classList.remove("d-none");
+
+    document.getElementById("cardPayment").classList.add("d-none");
+    document.getElementById("mcashPayment").classList.add("d-none");
+    document.getElementById("bankPayment").classList.add("d-none");
+
+    if (this.value === "card") document.getElementById("cardPayment").classList.remove("d-none");
+    else if (this.value === "mcash") document.getElementById("mcashPayment").classList.remove("d-none");
+    else if (this.value === "bank") document.getElementById("bankPayment").classList.remove("d-none");
+  });
+
+  // Payment form submissions
+  document.getElementById("cardForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    alert("Card payment submitted successfully!");
+    enableConfirmationButtons();
+  });
+
+  document.getElementById("mcashForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    alert("mCash/eZ Cash payment submitted successfully!");
+    enableConfirmationButtons();
+  });
+
+  document.getElementById("bankForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    alert("Bank transfer submitted successfully!");
+    enableConfirmationButtons();
+  });
+
+  function enableConfirmationButtons() {
+    document.getElementById("downloadBtn").removeAttribute("disabled");
+    document.getElementById("whatsappBtn").removeAttribute("disabled");
+  }
+
+  // WhatsApp Message Send
+  function sendWhatsApp() {
+    const ownerNumber = turfOwners[bookingData.turfName];
+    if (ownerNumber) {
+      const message = `🔔 *GameNgo Booking Confirmation* 🔔%0A%0A📍 *Turf Name:* ${bookingData.turfName}%0A👤 *User:* ${bookingData.username}%0A📲 *Mobile:* ${bookingData.mobile}%0A📅 *Date:* ${bookingData.date}%0A⏰ *Time:* ${bookingData.time} ${bookingData.ampm}%0A%0A✅ *Please confirm this booking.*`;
+      const whatsappURL = `https://wa.me/${ownerNumber}?text=${message}`;
+      window.open(whatsappURL, '_blank');
+    } else {
+      alert("Turf owner contact not found.");
+    }
+  }
+
+  document.getElementById("whatsappBtn").addEventListener("click", sendWhatsApp);
+
+  // Download PDF with QR Code
+  document.getElementById("downloadBtn").addEventListener("click", function () {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // 1. QR data
+    const qrData = `Turf: ${bookingData.turfName}\nUser: ${bookingData.username}\nMobile: ${bookingData.mobile}\nDate: ${bookingData.date}\nTime: ${bookingData.time} ${bookingData.ampm}\nDuration: ${bookingData.hours} hour(s)`;
+
+    // 2. Generate QR
+    const qr = new QRious({
+      element: document.getElementById('qrCanvas'),
+      value: qrData,
+      size: 150
+    });
+
+    // 3. Fill PDF text
+    doc.text(`Booking Confirmation - GameNgo`, 20, 20);
+    doc.text(`Turf: ${bookingData.turfName}`, 20, 30);
+    doc.text(`Username: ${bookingData.username}`, 20, 40);
+    doc.text(`Mobile: ${bookingData.mobile}`, 20, 50);
+    doc.text(`Date: ${bookingData.date}`, 20, 60);
+    doc.text(`Time: ${bookingData.time} ${bookingData.ampm}`, 20, 70);
+    doc.text(`Duration: ${bookingData.hours} hour(s)`, 20, 80);
+
+    // 4. Add QR image
+    const qrImageData = document.getElementById('qrCanvas').toDataURL('image/png');
+    doc.addImage(qrImageData, 'PNG', 70, 90, 70, 70);
+
+    // 5. Save PDF
+    doc.save("booking_receipt.pdf");
+
+    // 6. Show success message
+    document.getElementById("successMessage").classList.remove("d-none");
+  });
+
+  // Countdown Timer (30 mins)
+  let timeLeft = 30 * 60;
+
+  function updateCountdown() {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    document.getElementById("countdown").textContent = `⏳ Time left: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      window.location.href = "index.html"; // Change to your actual homepage
+    }
+    timeLeft--;
+  }
+
+  const timerInterval = setInterval(updateCountdown, 1000);
+  updateCountdown();
+
+</script>
+
+</body>
+</html>

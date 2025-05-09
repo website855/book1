@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TurfMaster Manager Panel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"/>
+</head>
+<body>
+
+<!-- Manager Button -->
+<div class="container mt-5 text-center">
+  <button id="managerButton" class="btn btn-success">Login as Manager</button>
+  <button id="adminButton" class="btn btn-primary">Login as Admin</button>
+</div>
+
+<!-- Login Form for Manager -->
+<div id="managerLoginSection" class="container mt-5" style="display: none;">
+  <h3 class="mb-4 text-center">Login to TurfMaster Manager Panel</h3>
+  <div class="row justify-content-center">
+    <div class="col-md-4">
+      <form id="managerLoginForm">
+        <div class="mb-3">
+          <label for="managerUsername" class="form-label">Username</label>
+          <input type="text" id="managerUsername" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label for="managerPassword" class="form-label">Password</label>
+          <input type="password" id="managerPassword" class="form-control" required />
+        </div>
+        <div class="mb-3 text-center">
+          <button type="submit" class="btn btn-primary w-100">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Login Form for Admin -->
+<div id="adminLoginSection" class="container mt-5" style="display: none;">
+  <h3 class="mb-4 text-center">Login to TurfMaster Admin Panel</h3>
+  <div class="row justify-content-center">
+    <div class="col-md-4">
+      <form id="adminLoginForm">
+        <div class="mb-3">
+          <label for="adminUsername" class="form-label">Username</label>
+          <input type="text" id="adminUsername" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label for="adminPassword" class="form-label">Password</label>
+          <input type="password" id="adminPassword" class="form-control" required />
+        </div>
+        <div class="mb-3 text-center">
+          <button type="submit" class="btn btn-primary w-100">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Manager Panel (Hidden until login is successful) -->
+<div id="managerPanel" class="container mt-5" style="display: none;">
+  <h3 class="mb-4 text-center">Manager Panel</h3>
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Turf Name</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Mobile</th>
+          <th>Date</th>
+          <th>Time(24 Format)</th>
+          <th>AM/PM</th>
+          <th>Hours</th>
+        </tr>
+      </thead>
+      <tbody id="bookingTable">
+        <tr><td colspan="9" class="text-center">Loading bookings...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Admin Panel (Hidden until login is successful) -->
+<div id="adminPanel" class="container mt-5" style="display: none;">
+  <h3 class="mb-4 text-center">Admin Panel</h3>
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Turf Name</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Mobile</th>
+          <th>Date</th>
+          <th>Time(24 Format)</th>
+          <th>AM/PM</th>
+          <th>Hours</th>
+          <th>Device</th>
+          <th>Total Amount</th>
+        </tr>
+      </thead>
+      <tbody id="adminBookingTable">
+        <tr><td colspan="11" class="text-center">Loading admin bookings...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<footer class="footer bg-dark text-white text-center p-3 mt-4">
+  <p>© 2025 TurfMaster. All Rights Reserved.</p>
+</footer>
+
+<script>
+  // Handle showing login forms for Manager and Admin
+  const managerButton = document.getElementById('managerButton');
+  const adminButton = document.getElementById('adminButton');
+  const managerLoginSection = document.getElementById('managerLoginSection');
+  const adminLoginSection = document.getElementById('adminLoginSection');
+
+  managerButton.addEventListener('click', function() {
+    managerLoginSection.style.display = 'block';
+    adminLoginSection.style.display = 'none';
+    managerButton.style.display = 'none';
+    adminButton.style.display = 'none';
+  });
+
+  adminButton.addEventListener('click', function() {
+    adminLoginSection.style.display = 'block';
+    managerLoginSection.style.display = 'none';
+    managerButton.style.display = 'none';
+    adminButton.style.display = 'none';
+  });
+
+  // Handle Manager Login validation
+  const managerLoginForm = document.getElementById('managerLoginForm');
+  const managerPanel = document.getElementById('managerPanel');
+
+  managerLoginForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    const managerUsername = document.getElementById('managerUsername').value;
+    const managerPassword = document.getElementById('managerPassword').value;
+
+    if (managerUsername === 'manager' && managerPassword === 'manager@1234') {
+      managerLoginSection.style.display = 'none';
+      managerPanel.style.display = 'block';
+      fetchBookings('manager');
+    } else {
+      alert('Incorrect manager credentials');
+    }
+  });
+
+  // Handle Admin Login validation
+  const adminLoginForm = document.getElementById('adminLoginForm');
+  const adminPanel = document.getElementById('adminPanel');
+
+  adminLoginForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    const adminUsername = document.getElementById('adminUsername').value;
+    const adminPassword = document.getElementById('adminPassword').value;
+
+    if (adminUsername === 'admin' && adminPassword === 'admin@1234') {
+      adminLoginSection.style.display = 'none';
+      adminPanel.style.display = 'block';
+      fetchBookings('admin');
+    } else {
+      alert('Incorrect admin credentials');
+    }
+  });
+
+  // Function to fetch bookings for both manager and admin
+  function fetchBookings(role) {
+    const url = role === 'manager' ? 'bookings.php' : 'admin_bookings.php';
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        const table = role === 'manager' ? document.getElementById('bookingTable') : document.getElementById('adminBookingTable');
+        table.innerHTML = '';
+        if (data.length === 0) {
+          table.innerHTML = '<tr><td colspan="11" class="text-center">No bookings found.</td></tr>';
+          return;
+        }
+
+        data.forEach((booking, index) => {
+          const row = `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${booking.turfname || 'N/A'}</td>
+              <td>${booking.username || 'N/A'}</td>
+              <td>${booking.email || 'N/A'}</td>
+              <td>${booking.mobile || 'N/A'}</td>
+              <td>${booking.date || 'N/A'}</td>
+              <td>${booking.time || 'N/A'}</td>
+              <td>${booking.ampm || 'N/A'}</td>
+              <td>${booking.hours || 'N/A'}</td>
+              ${role === 'admin' ? `<td>${booking.device || 'N/A'}</td><td>${booking.total_amount || 'N/A'}</td>` : ''}
+            </tr>
+          `;
+          table.innerHTML += row;
+        });
+      })
+      .catch(err => {
+        const table = role === 'manager' ? document.getElementById('bookingTable') : document.getElementById('adminBookingTable');
+        table.innerHTML = '<tr><td colspan="11" class="text-center text-danger">Error loading data</td></tr>';
+        console.error('Fetch error:', err);
+      });
+  }
+</script>
+
+</body>
+</html>

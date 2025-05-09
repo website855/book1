@@ -1,0 +1,166 @@
+<?php
+// Start the session to access session data
+session_start();
+
+// Check if the user is logged in, if not, redirect to login page
+if (!isset($_SESSION['username'])) {
+    header("Location: login.php"); // Redirect to login page if not logged in
+    exit();
+}
+
+// Get the username from the session
+$username = $_SESSION['username'];
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - GameNgo</title>
+    <style>
+        /* Same styles as profile.html */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+
+        .navbar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #333;
+            color: white;
+            position: absolute;
+            top: 0;
+        }
+
+        .navbar .logo {
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .navbar .home-btn a {
+            text-decoration: none;
+            color: white;
+            font-size: 16px;
+            padding: 10px 15px;
+            background: #ff6600;
+            border-radius: 5px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: white;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 450px;
+            margin-top: 100px;
+            transition: all 0.3s ease;
+        }
+
+        .container img {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            border-radius: 50%;
+            border: 3px solid #ff6600;
+        }
+
+        .container h2 {
+            margin-bottom: 15px;
+            font-size: 22px;
+            color: #333;
+        }
+
+        .container button {
+            width: 100%;
+            padding: 12px;
+            background: #ff6600;
+            border: none;
+            color: white;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .container button:hover {
+            background: #e65c00;
+        }
+
+        @media (max-width: 600px) {
+            .navbar {
+                padding: 10px;
+            }
+
+            .navbar .logo img {
+                height: 30px;
+            }
+
+            .navbar .home-btn a {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .container h2 {
+                font-size: 20px;
+            }
+
+            .container img {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+  <div class="navbar">
+      <div class="logo">
+          <img src="logo.jpg" alt="GameNgo Logo" />
+          GameNgo
+      </div>
+      <div class="home-btn">
+          <a href="home.html">Home</a>
+      </div>
+  </div>
+
+  <div class="container">
+      <img src="profile.webp" alt="Profile Image" />
+      <h2>Welcome, <?php echo htmlspecialchars($username); ?>!</h2>
+      <button onclick="window.location.href='logout.php'">Logout</button>
+  </div>
+
+</body>
+</html>
